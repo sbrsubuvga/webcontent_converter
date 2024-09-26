@@ -46,6 +46,7 @@ class WebcontentConverter {
       if (WebViewHelper.isChromeAvailable) {
         windowBrower ??= await pp.puppeteer.launch(
           headless: true,
+          args: ["--no-default-browser-check","--headless=old","--window-position=-2400,-2400"],
           executablePath: executablePath ?? WebViewHelper.executablePath(),
         );
       }
@@ -198,6 +199,7 @@ class WebcontentConverter {
             if (windowBrower == null || windowBrower?.isConnected != true) {
               windowBrower = await pp.puppeteer.launch(
                   headless: true,
+                  args: ["--no-default-browser-check","--headless=old","--window-position=-2400,-2400"],
                   executablePath:
                       executablePath ?? WebViewHelper.executablePath());
             }
@@ -366,6 +368,7 @@ class WebcontentConverter {
           /// if window browser is null
           windowBrower ??= await pp.puppeteer.launch(
               headless: true,
+              args: ["--no-default-browser-check","--headless=old","--window-position=-2400,-2400"],
               executablePath: executablePath ?? WebViewHelper.executablePath());
 
           /// if window browser page is null
