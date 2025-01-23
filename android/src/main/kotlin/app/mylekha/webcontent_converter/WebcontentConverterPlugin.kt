@@ -68,12 +68,19 @@ class WebcontentConverterPlugin : FlutterPlugin, MethodCallHandler, ActivityAwar
                 print("\ndwidth : $dwidth")
                 print("\ndheight : $dheight")
                 webView.layout(0, 0, dwidth, dheight)
+                webView.measure(
+                    View.MeasureSpec.makeMeasureSpec(dwidth, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(dheight, View.MeasureSpec.EXACTLY)
+                )
+                webView.layout(0, 0, webView.measuredWidth, webView.measuredHeight)
+
                 webView.loadDataWithBaseURL(null, content, "text/HTML", "UTF-8", null)
                 webView.setInitialScale(1)
                 webView.settings.javaScriptEnabled = true
                 webView.settings.useWideViewPort = true
                 webView.settings.javaScriptCanOpenWindowsAutomatically = true
                 webView.settings.loadWithOverviewMode = true
+
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
                     print("\n=======> enabled scrolled <=========")
                     WebView.enableSlowWholeDocumentDraw()
@@ -94,25 +101,33 @@ class WebcontentConverterPlugin : FlutterPlugin, MethodCallHandler, ActivityAwar
                             print("\n scroll delayed ${webView.scrollBarFadeDuration}")
 
                             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-                                webView.evaluateJavascript("(function() { return [document.body.offsetWidth, document.body.lastElementChild.offsetHeight]; })();"){it
-                                    var xy = JSONArray(it)
-                                    var offsetWidth = xy[0].toString();
-                                    var offsetHeight = xy[1].toString();
-                                    if( offsetHeight.toInt() < 1000 ){
-                                        offsetHeight = (xy[1].toString().toInt() + 20).toString();
-                                    }
-                                    print("\n width height $it ${it is String} ${xy[0]} ${xy[1]}");
-                                    var data = webView.toBitmap(offsetWidth!!.toDouble(), offsetHeight!!.toDouble())
-                                    if (data != null) {
-                                        val bytes = data.toByteArray()
-//                                      saveWebView(data)
-                                        //ByteArray(0)
-                                        result.success(bytes)
-                                        println("\n Got snapshot")
+                                webView.evaluateJavascript("(function() { return [document.body.offsetWidth, document.body.lastElementChild.offsetHeight]; })();") { it ->
+                                    try {
+                                        val xy = JSONArray(it)
+                                        var offsetWidth = xy.get(0).toString()
+                                        var offsetHeight = xy.get(1).toString()
+
+                                        // Adjust height if necessary
+                                        if (offsetHeight.toInt() < 1000) {
+                                            offsetHeight = (xy.get(1).toString().toInt() + 20).toString()
+                                        }
+                                        print("\n width height $it ${it is String} ${xy[0]} ${xy[1]}")
+
+                                        // Capture WebView as a bitmap
+                                        val data = webView.toBitmap(offsetWidth.toDouble(), offsetHeight.toDouble())
+                                        if (data != null) {
+                                            val bytes = data.toByteArray()
+                                            result.success(bytes)  // Return the captured image as byte array
+                                            println("\n Got snapshot")
+                                        }
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                        result.error("RENDER_ERROR", "Failed to capture WebView content", e.localizedMessage)
                                     }
                                 }
+
                             }
-                        }, _duration!!.toLong())
+                        }, (_duration + 50)!!.toLong())
                     }
                 }
             }
