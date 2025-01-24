@@ -92,7 +92,7 @@ class WebcontentConverterPlugin : FlutterPlugin, MethodCallHandler, ActivityAwar
                     override fun onPageFinished(view: WebView, url: String) {
                         super.onPageFinished(view, url)
 
-                        var _duration = (dheight / 1000 ).toInt() * 200 ; /// delay 300 ms for every dheight 2000
+                        var _duration = maxOf((dheight / 1000).toInt() * 200, 300) /// delay 300 ms for every dheight 2000
                         print("\n _duration ${_duration}");
 
                         Handler(Looper.getMainLooper()).postDelayed({
